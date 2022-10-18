@@ -19,6 +19,7 @@ $DEBUG = $ENV{"DEBUG"} if defined $ENV{"DEBUG"};  # settable from the environmen
 $ENV{"PATH"} = "/sbin:/bin:/usr/sbin:/usr/bin:/root/bin";
 
 # Read my configuration file
+$UALBackups::operation="post-backup";
 my $cfg=readConfigFile();
 
 # If the "snapshot" database is running, kill it

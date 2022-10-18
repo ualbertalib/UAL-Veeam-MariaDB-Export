@@ -19,7 +19,8 @@
 # 		   as the disk volume.  Parent process waits for a socket to be created, indicating the database is ready to be used
 #		6. Use mysqldump to dump the entire SECOND database to text files (compressed)
 #		7. Stop the SECOND mysqld, by killing the pid of the db, and that of the child
-#		8. Release the lock file
+#		8. Unmount and remove the snapshot
+#		9. Release the lock file
 #
 # Room for Improvement:
 # - convert to OO paradigm ('cause features can also be used when re-creating a replica)
@@ -33,40 +34,19 @@
 use strict;
 use v5.10.1;  # using the "for" version of switch
 use IPC::Open3;
-use JSON; 
-use Data::Dumper; 
+use UALBackups;
 
 my $DEBUG = 0;  # disabled by default
 $DEBUG = $ENV{"DEBUG"} if defined $ENV{"DEBUG"};  # settable from the environment, if you like
 
-# security measure, and for sanity
 $ENV{"PATH"} = "/sbin:/bin:/usr/sbin:/usr/bin:/root/bin";
+
+# security measure, and for sanity
 $ENV{"TMPDIR"} = "/tmp";  					# Enormous bug: External backup s/w resets TMPDIR environment variable, but mysqldump needs to write something there, and it's unwriteable
 
 # 0.1.0 Read your configuration file
-my $configPath="/etc/UAL-Veeam-MariaDB-Export.conf";
-open(CONFIG,$configPath) or &gone("Cannot open my config file, $configPath"); # does not return
-my $JSONconfig=<CONFIG>;   # will only read one line
-close CONFIG;
-my $cfg=decode_json($JSONconfig);
-$DEBUG && print Dumper($cfg);
-# Input validation: at least these must exist...
-defined $cfg->{"backupDir"} or &gone("Config file $configPath didn't specify 'backupDir'");
-(mkdir $cfg->{"backupDir"}  or &gone("Config directory " . $cfg->{"backupDir"} . " did not exist, cannot create it") ) unless -d $cfg->{"backupDir"};
-#.. based on backupDir..
-my $tempDir=$cfg->{"backupDir"} . "/tmp";
-(mkdir $tempDir or  &gone("Temp directory $tempDir did not exist, cannot create it")) unless -d  $tempDir; 
-# binDir
-defined $cfg->{"binDir"} or &gone("Config file $configPath didn't specify 'binDir'");
-&gone($cfg->{"binDir"} . " does not contain post-backup.pl") unless -e ($cfg->{"binDir"} . "/post-backup.pl") ;
-# mysqlVolumeGroup
-defined $cfg->{"mysqlVolumeGroup"} or &gone("Config file $configPath didn't specify 'mysqlVolumeGroup'");
-# minimumTarballSize
-defined $cfg->{"minimumTarballSize"} or &gone("Config file $configPath didn't specify 'minimumTarballSize'");
-# snapshotSize
-defined $cfg->{"snapshotSize"} or &gone("Config file $configPath didn't specify 'snapshotSize'");
-# killTimeout
-defined $cfg->{"killTimeout"} or &gone("Config file $configPath didn't specify 'killTimeout'");
+$UALBackups::operation="pre-scan"; # set a global 
+my $cfg=readConfigFile();
 
 # 0.1.1 Acquire a lock - ensure this never runs more than once at a time
 #  -violation of lock results in alerts - email to admins + pager
@@ -163,9 +143,7 @@ my $databaseCount = $#dbName + 1;
 $sth->finish; 
 
 #  2. Completely shut down the database!
-`systemctl stop mariadb.service `;
-&gone ("Failed shutting down the primary mysqld on this system") unless ($? == 0);  # checking return code ; does not return
-&log ("Database shut down");
+stopDatabase();
 
 # 3. Snapshot the disk volume containing the database 
 # Better get that size from a text config file, eh?  It's likely to change over time
@@ -220,7 +198,7 @@ while ( ! -e $socket ) {  # this is an awful hack - needs a time limit
 }
 &log ("mysqld running on port 3307 - starting dump!");
 
-# 7. Use mysqldump to dump from this database to text files
+# 6. Use mysqldump to dump from this database to text files
 my ($pid,$child_exit_status); 
 foreach my $db (@dbName) {
 	# really need return status from this!	
@@ -270,7 +248,7 @@ my $statBlob = stat($tarName);
 `/bin/rm -rf /var/backups/mysql/tmp/*`;  # clean up after yourself
 &log ("Dump completed...");
 
-# 8. Kill that mysql process:
+# 7. Kill that mysql process:
 # ,,,OR
 my $pidfile = "/var/run/mariadb/snapshot.pid";  # ? read this value from the /etc/snap.cnf?
 if ( -e $pidfile ) {
@@ -291,9 +269,13 @@ my $killTimeout = $cfg->{"killTimeout"};
 &log ("Sleeping for $killTimeout sec...") if (-e $pidfile); 
 sleep $killTimeout; 
 &gone ("Unable to stop the 3307-database") if ( -e $pidfile);  # check that the PID file went away
-# 8. Start an independent subjob to monitor the duration of the backup, alert if the snapshot fills
+#  Start an independent subjob to monitor the duration of the backup, alert if the snapshot fills
 #    or the job runs too long.
 &log ("Please write the monitoring job which will tattle if the backup takes too long...");
+
+# 8. Unmount and remove the snapshot
+unmountSnapshot();
+removeSnapshot($cfg);
 
 # 9. Release the lock; Exit 
 if ( -e $lockFile ) {
@@ -308,20 +290,6 @@ if ( -e $lockFile ) {
 &log ("pre-scan.pl finishes - External backup starts now");
 
 # -------------------------------------------- Function definitions ------------------------------------------
-# sub log {
-my $string = shift;
-$DEBUG && print "$string\n";
-`logger -p local0.info -t pre-scan "$string"`; 
-}
-
-# Call logger & then exit with input
-sub gone {
-my $string = shift;
-&log("ERROR: $string");	# print that error message to syslog
-print STDERR $string;	# ditto STDERR
-exit 1;  		# exit with error code
-}
-
 sub sizeof {
 my $string = shift; 
 my %vol = &diskVol($string); 
