@@ -24,49 +24,19 @@ $ENV{"PATH"} = "/sbin:/bin:/usr/sbin:/usr/bin:/root/bin";
 my $cfg=readConfigFile();
 
 # If the "snapshot" database is running, kill it
-`ps -ef | grep snap.cnf | grep mysql | awk -F" " '{ print \$2; }' | xargs kill `;
-my $killTimeout = $cfg->{"killTimeout"};
-&log("Sleeping for $killTimeout seconds, waiting for a database I might have killed to die");
-sleep $killTimeout;
+killSnapshotDatabase($cfg);
 
 # Unmount the snapshot, if it's mounted
-if (-d "/mnt/snapshot/mysql") {  # existence of this directory suggests the snapshot is mounted
-	`umount /mnt/snapshot`; 
-	if ($? == 0 ) {
-		&log ("Successfully unmounted the snapshot");
-	} else {
-		&log ("Tried and failed to unmount the snapshot!");
-	}
-}
+unmountSnapshot();
+
 # remove the snapshot, if it exists
-my $LV = "/dev/" . $cfg->{"mysqlVolumeGroup"} . "/snap";
-if (-e $LV) {
-	`lvremove --force $LV`; 
-	if ($? == 0) {
-		&log ("Successfully removed the LVM snapshot, $LV");
-	} else {
-		&log ("Tried to destroy the snapshot, $LV, but failed!");
-	}
-}
+removeSnapshot($cfg); 
 
 # Clean up files in the backup directory
-my $backupDir = $cfg->{"backupDir"}; my $cmd; my $filename;
-open ($cmd,  "/usr/bin/find $backupDir -name \"mysql_backup_*.tar\" -ctime +" . $cfg->{"daysToRetainBackups"} . " |") || &gone("Can't run the find command");
-while ($filename  = <$cmd>) {
-	chomp $filename;
-	unlink $filename || &gone("Failed to delete $filename");
-	&log("Deleted:$filename\n");
-}
-
-# Also silently cleanup the tmpdir, which can result if the pre-scan script fails.
-`/bin/rm -rf $backupDir/tmp/*`;
-&log("Cleaned up $backupDir/tmp/");
+cleanUp($cfg); 
 
 # Start the database service
-`systemctl start mariadb.service`;
-&gone("Unable to restart the mariadb service, after making the snapshot") unless ($? == 0);  # does not return
-&log ("Database re-started");
-
+startDatabase();
 
 &log("post-backup.pl finished");
 

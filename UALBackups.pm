@@ -34,7 +34,7 @@ sub readConfigFile {
 }
 
 sub killSnapshotDatabase   {
-	my $cfg = $_; 
+	my $cfg = $_[0]; 
 	# If the "snapshot" database is running, kill it
 	`ps -ef | grep snap.cnf | grep mysql | awk -F" " '{ print \$2; }' | xargs kill `;
 	my $killTimeout = $cfg->{"killTimeout"};
@@ -56,7 +56,7 @@ sub unmountSnapshot {
 
 sub removeSnapshot {
 	# remove the snapshot, if it exists
-	my $cfg = $_; 
+	my $cfg = $_[0]; 
 	my $LV = "/dev/" . $cfg->{"mysqlVolumeGroup"} . "/snap";
 	if (-e $LV) {
 		`lvremove --force $LV`; 
@@ -69,7 +69,7 @@ sub removeSnapshot {
 }
 
 sub cleanUp {
-	my $cfg = $_; 
+	my $cfg = $_[0]; 
 	# Clean up files in the backup directory
 	my $backupDir = $cfg->{"backupDir"}; my $cmd; my $filename;
 	open ($cmd,  "/usr/bin/find $backupDir -name \"mysql_backup_*.tar\" -ctime +" . $cfg->{"daysToRetainBackups"} . " |") || &gone("Can't run the find command");
