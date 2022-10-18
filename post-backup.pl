@@ -80,7 +80,9 @@ while ($filename  = <$cmd>) {
 
 &log("post-backup.pl finished");
 
+# ---------------- Function definitions -------------------------
 sub log {
+	$DEBUG && print "$string\n";
 	my $string = shift;
 	`logger -p local0.info -t post-backup "$string"`; 
 }
