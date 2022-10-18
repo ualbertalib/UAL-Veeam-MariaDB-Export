@@ -11,8 +11,6 @@
 # 		* It also deletes older tarballs, left behind in the backupdir
 # Reference: 
 use strict; 
-use Data::Dumper; 
-use JSON;
 use UALBackups;
 
 my $DEBUG = 0;  # disabled by default
