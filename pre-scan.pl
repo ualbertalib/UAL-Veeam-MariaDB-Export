@@ -41,7 +41,7 @@ $DEBUG = $ENV{"DEBUG"} if defined $ENV{"DEBUG"};  # settable from the environmen
 
 # security measure, and for sanity
 $ENV{"PATH"} = "/sbin:/bin:/usr/sbin:/usr/bin:/root/bin";
-$ENV{"TMPDIR"} = "/tmp";  					# Enormous bug: CommVault resets TMPDIR environment variable, but mysqldump needs to write something there, and it's unwriteable
+$ENV{"TMPDIR"} = "/tmp";  					# Enormous bug: External backup s/w resets TMPDIR environment variable, but mysqldump needs to write something there, and it's unwriteable
 
 # 0.1.0 Read your configuration file
 my $configPath="/etc/UAL-Veeam-MariaDB-Export.conf";
@@ -236,7 +236,7 @@ foreach my $db (@dbName) {
 	waitpid( $pid, 0 );
 	$child_exit_status = $? >> 8;
 	if ($child_exit_status ne 0) {
-		&log("Backup failed, here are the error message(s):\n");   # presuming this works, we'd want to error-out here, telling CommVault we have garbage & not to back up anything
+		&log("Backup failed, here are the error message(s):\n");   # presuming this works, we'd want to error-out here, telling Veeam we have garbage & not to back up anything
 		while (<CHLD_ERR>) {
 			&log ("Error from mysqldump: $_");
 		}
@@ -307,7 +307,8 @@ if ( -e $lockFile ) {
 # NOTE Post job will unmount the snapshot, and delete the snapshot, in just a few minutes
 &log ("pre-scan.pl finishes - External backup starts now");
 
-sub log {
+# -------------------------------------------- Function definitions ------------------------------------------
+# sub log {
 my $string = shift;
 $DEBUG && print "$string\n";
 `logger -p local0.info -t pre-scan "$string"`; 
