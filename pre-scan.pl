@@ -145,9 +145,9 @@ use DBI;   # first, gotta connect to the DB
 #my $dsn = "DBI:mysql:mysql;mysql_read_default_file=$ENV{HOME}/.my.cnf"; 
 my $dsn = "DBI:mysql:mysql;mysql_read_default_file=/root/.my.cnf"; 
 my $dbh = DBI->connect($dsn, undef, undef, {RaiseError => 1}) || &gone ("Cannot connect to local database: $!");
-$DEBUG && print "Successfully connected to the database\n";
+&log ("Successfully connected to the database");
 
-my $sth = $dbh->prepare ("show databases") || &gone ("Cannot stop replication, $dbh->errstr"); 
+my $sth = $dbh->prepare ("show databases") || &gone ("Cannot query list of databases, $dbh->errstr"); 
 $sth->execute or &gone ("Unable to retrieve a list of databases, reason: " .  $sth->errstr);
 &log ("Good: retrieved a list of database names");
 my @dbName;
@@ -156,11 +156,9 @@ while (my @results = $sth->fetchrow_array ) {
 	next if $results[0] eq "information_schema"; # this is an database which mysql manages internally
 	next if $results[0] eq "performance_schema"; # New in MariaDB -- don't ever try to dump this database
 	#next if $results[0] eq "#mysql50#lost+found"; # ugh!
-	$DEBUG && print " $results[0]";
 	push @dbName, $results[0];
 }
 my $databaseCount = $#dbName + 1;
-$DEBUG && print "\nThere are " . $databaseCount . " databases to back up: ";
 &log ("There are " . $databaseCount . " databases to back up");
 $sth->finish; 
 
@@ -311,6 +309,7 @@ if ( -e $lockFile ) {
 
 sub log {
 my $string = shift;
+$DEBUG && print "$string\n";
 `logger -p local0.info -t pre-scan "$string"`; 
 }
 
