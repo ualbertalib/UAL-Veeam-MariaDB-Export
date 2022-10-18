@@ -13,6 +13,7 @@
 use strict; 
 use Data::Dumper; 
 use JSON;
+use UALBackups;
 
 my $DEBUG = 0;  # disabled by default
 $DEBUG = $ENV{"DEBUG"} if defined $ENV{"DEBUG"};  # settable from the environment, if you like
@@ -20,18 +21,7 @@ $DEBUG = $ENV{"DEBUG"} if defined $ENV{"DEBUG"};  # settable from the environmen
 $ENV{"PATH"} = "/sbin:/bin:/usr/sbin:/usr/bin:/root/bin";
 
 # Read my configuration file
-my $configPath="/etc/UAL-Veeam-MariaDB-Export.conf";
-open(CONFIG,$configPath) or &gone("Cannot open my config file, $configPath"); # does not return
-my $JSONconfig=<CONFIG>;   # will only read one line
-close CONFIG;
-my $cfg=decode_json($JSONconfig);
-$DEBUG && print "Results from reading the config file:\n",  Dumper($cfg);
-# Input validation: at least these must exist...
-defined $cfg->{"mysqlVolumeGroup"} or &gone("Config file $configPath didn't specify 'mysqlVolumeGroup'");
-defined $cfg->{"backupDir"} or &gone("Config file $configPath didn't specify 'backupDir'");
-defined $cfg->{"daysToRetainBackups"} or &gone("Config file $configPath didn't specify 'daysToRetainBackups'");
-defined $cfg->{"killTimeout"} or &gone("Config file $configPath didn't specify 'killTimeout'");
-&log ("Read $configPath");
+my $cfg=readConfigFile();
 
 # If the "snapshot" database is running, kill it
 `ps -ef | grep snap.cnf | grep mysql | awk -F" " '{ print \$2; }' | xargs kill `;
@@ -80,18 +70,4 @@ while ($filename  = <$cmd>) {
 
 &log("post-backup.pl finished");
 
-# ---------------- Function definitions -------------------------
-sub log {
-	$DEBUG && print "$string\n";
-	my $string = shift;
-	`logger -p local0.info -t post-backup "$string"`; 
-}
-
-
-# Call logger & then exit with input
-sub gone {
-my $string = shift;
-&log("ERROR: $string"); 
-die $string;
-}
 # intended EOF
