@@ -20,7 +20,7 @@ $DEBUG = $ENV{"DEBUG"} if defined $ENV{"DEBUG"};  # settable from the environmen
 $ENV{"PATH"} = "/sbin:/bin:/usr/sbin:/usr/bin:/root/bin";
 
 # Read my configuration file
-my $configPath="/etc/MariaDB_Simpana_Backup.conf";
+my $configPath="/etc/UAL-Veeam-MariaDB-Export.conf";
 open(CONFIG,$configPath) or &gone("Cannot open my config file, $configPath"); # does not return
 my $JSONconfig=<CONFIG>;   # will only read one line
 close CONFIG;

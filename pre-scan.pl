@@ -44,7 +44,7 @@ $ENV{"PATH"} = "/sbin:/bin:/usr/sbin:/usr/bin:/root/bin";
 $ENV{"TMPDIR"} = "/tmp";  					# Enormous bug: CommVault resets TMPDIR environment variable, but mysqldump needs to write something there, and it's unwriteable
 
 # 0.1.0 Read your configuration file
-my $configPath="/etc/MariaDB_Simpana_Backup.conf";
+my $configPath="/etc/UAL-Veeam-MariaDB-Export.conf";
 open(CONFIG,$configPath) or &gone("Cannot open my config file, $configPath"); # does not return
 my $JSONconfig=<CONFIG>;   # will only read one line
 close CONFIG;
