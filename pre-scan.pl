@@ -106,7 +106,6 @@ if (! -e $lockFile ) {
 
 # 0.1.2 (Perhaps not required by Veeam?)
 # Gonna touch my output file first!
-#my $backupDir = "/var/backups/mysql";
 my $backupDir = $cfg->{"backupDir"};
 # encode a timestamp on each tarball:
 my ($sec, $min, $hour, $mday, $mon, $year,  $yday, $isdst); 
@@ -160,7 +159,8 @@ while (my @results = $sth->fetchrow_array ) {
 	$DEBUG && print " $results[0]";
 	push @dbName, $results[0];
 }
-$DEBUG && print "\nThere are " . $#dbName . " databases to back up: ";
+my $databaseCount = $#dbName + 1;
+$DEBUG && print "\nThere are " . $databaseCount . " databases to back up: ";
 &log ("There are " . $#dbName . " databases to back up");
 $sth->finish; 
 
