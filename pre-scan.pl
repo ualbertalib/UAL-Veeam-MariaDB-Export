@@ -288,47 +288,4 @@ if ( -e $lockFile ) {
 #
 # NOTE Post job will unmount the snapshot, and delete the snapshot, in just a few minutes
 &log ("pre-scan.pl finishes - External backup starts now");
-
-# -------------------------------------------- Function definitions ------------------------------------------
-sub sizeof {
-my $string = shift; 
-my %vol = &diskVol($string); 
-&log ("Found $string is of size: " . $vol{'used'}); 
-return $vol{'used'};
-};
-
-sub diskRemaining {
-my $string = shift; 
-my %vol = &diskVol($string); 
-&log ("Found $string has " . $vol{'available'} . " available");
-return $vol{'available'};
-}
-
-sub diskVol {
-my $string = shift; 
-my $df; my $line; 
-&log ("Interrogating filesystem $string");
-open ($df, "df -Pk $string |") || &gone ("Cannot run the df command");   # -P means posix - all the output on one line; easier to parse
-$line = <$df>; 
-&gone ("Cannot find filesystem size, no Filesystem") unless (defined $line && $line =~ m/^Filesystem/) ; 
-$line = <$df>; 
-close $df;
-&gone ("Cannot find filesystem size, no device, $line") unless (defined $line && $line =~ m!^/dev/mapper/!) ;
-my ($device, $size, $used, $available, $perc, $mount);
-($device, $size, $used, $available, $perc, $mount) = split /\s+/, $line; 
-&gone ("Coding error trying to read filesystem size, '$size'") 	unless (defined $size && $size =~ m/^\d+$/); 
-&gone ("Coding error trying to read filesystem used, $used") 		unless (defined $used && $used =~ m/^\d+$/); 
-&gone ("Coding error trying to read filesystem avail, $available") 	unless (defined $available && $available =~ m/^\d+$/); 
-&gone ("Coding error trying to read filesystem perc, $perc") 		unless (defined $perc && $perc =~ m/^\d+%$/); 
-
-my %s = (
-	size => 	$size,
-	used =>		$used,
-	available =>	$available,
-	percent =>	$perc, 
-	mountpt =>	$mount
-);
-
-return %s;
-} # end of sub diskVol()
 # intended EOF

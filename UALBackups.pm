@@ -8,9 +8,9 @@ use Exporter;
 our @ISA= qw( Exporter );
 
 # these CAN be exported.
-our @EXPORT_OK = qw( readConfigFile killSnapshotDatabase unmountSnapshot removeSnapshot cleanUp startDatabase stopDatabase log gone );
+our @EXPORT_OK = qw( readConfigFile killSnapshotDatabase unmountSnapshot removeSnapshot cleanUp startDatabase stopDatabase log gone sizeof diskRemaining diskVol);
 # these are exported by default.
-our @EXPORT = qw( readConfigFile killSnapshotDatabase unmountSnapshot removeSnapshot cleanUp startDatabase stopDatabase log gone);
+our @EXPORT = qw( readConfigFile killSnapshotDatabase unmountSnapshot removeSnapshot cleanUp startDatabase stopDatabase log gone sizeof diskRemaining diskVol);
 
 my $DEBUG = 0;  # disabled by default
 $DEBUG = $ENV{"DEBUG"} if defined $ENV{"DEBUG"};  # settable from the environment, if you like
@@ -120,4 +120,46 @@ sub gone {
 	die $string;
 }
 
-1; 
+sub sizeof {
+	my $string = shift; 
+	my %vol = &diskVol($string); 
+	&log ("Found $string is of size: " . $vol{'used'}); 
+	return $vol{'used'};
+};
+
+sub diskRemaining {
+	my $string = shift; 
+	my %vol = &diskVol($string); 
+	&log ("Found $string has " . $vol{'available'} . " available");
+	return $vol{'available'};
+}
+
+sub diskVol {
+	my $string = shift; 
+	my $df; my $line; 
+	&log ("Interrogating filesystem $string");
+	open ($df, "df -Pk $string |") || &gone ("Cannot run the df command");   # -P means posix - all the output on one line; easier to parse
+	$line = <$df>; 
+	&gone ("Cannot find filesystem size, no Filesystem") unless (defined $line && $line =~ m/^Filesystem/) ; 
+	$line = <$df>; 
+	close $df;
+	&gone ("Cannot find filesystem size, no device, $line") unless (defined $line && $line =~ m!^/dev/mapper/!) ;
+	my ($device, $size, $used, $available, $perc, $mount);
+	($device, $size, $used, $available, $perc, $mount) = split /\s+/, $line; 
+	&gone ("Coding error trying to read filesystem size, '$size'") 	unless (defined $size && $size =~ m/^\d+$/); 
+	&gone ("Coding error trying to read filesystem used, $used") 		unless (defined $used && $used =~ m/^\d+$/); 
+	&gone ("Coding error trying to read filesystem avail, $available") 	unless (defined $available && $available =~ m/^\d+$/); 
+	&gone ("Coding error trying to read filesystem perc, $perc") 		unless (defined $perc && $perc =~ m/^\d+%$/); 
+
+	my %s = (
+		size => 	$size,
+		used =>		$used,
+		available =>	$available,
+		percent =>	$perc, 
+		mountpt =>	$mount
+	);
+
+	return %s;
+} # end of sub diskVol()
+
+1;   # This MUST be the last line in the file
