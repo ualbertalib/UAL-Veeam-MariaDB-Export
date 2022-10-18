@@ -161,7 +161,7 @@ while (my @results = $sth->fetchrow_array ) {
 }
 my $databaseCount = $#dbName + 1;
 $DEBUG && print "\nThere are " . $databaseCount . " databases to back up: ";
-&log ("There are " . $#dbName . " databases to back up");
+&log ("There are " . $databaseCount . " databases to back up");
 $sth->finish; 
 
 #  2. Completely shut down the database!
