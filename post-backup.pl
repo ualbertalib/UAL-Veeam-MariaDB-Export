@@ -9,7 +9,7 @@
 # 		* It is also designed to kill the 'snapshot' database on port 3307 (although it should 
 # 		not have been left running), as this would prevent the unmount!
 # 		* It also deletes older tarballs, left behind in the backupdir
-# Reference: 
+# Reference: 	https://github.com/ualbertalib/UAL-Veeam-MariaDB-Export
 use strict; 
 use lib qw( /usr/local/bin ); # So it can find UALBackups...
 use UALBackups;
