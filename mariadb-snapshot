@@ -1,0 +1,14 @@
+# This file comes from the UAL-Veeam-MariaDB-Export RPM
+# It belongs in /etc/logrotate.d/, where it will rotate the log from the snapshot database!
+
+/var/log/mariadb/snapshot.log {
+        create 644 mysql mysql
+        #notifempty
+	weekly
+        rotate 8
+        size 10
+        missingok
+        nocompress
+	# We don't need postrotate... backups aren't scheduled to happen while logs are being rotated.
+}
+
