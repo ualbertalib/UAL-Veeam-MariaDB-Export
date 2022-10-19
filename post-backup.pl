@@ -11,6 +11,7 @@
 # 		* It also deletes older tarballs, left behind in the backupdir
 # Reference: 
 use strict; 
+use lib qw( /usr/local/bin ); # So it can find UALBackups...
 use UALBackups;
 
 my $DEBUG = 0;  # disabled by default
@@ -19,7 +20,7 @@ $DEBUG = $ENV{"DEBUG"} if defined $ENV{"DEBUG"};  # settable from the environmen
 $ENV{"PATH"} = "/sbin:/bin:/usr/sbin:/usr/bin:/root/bin";
 
 # Read my configuration file
-$UALBackups::operation="post-backup";
+$UALBackups::operation="post-backup";  # determines what you will see in syslog
 my $cfg=readConfigFile();
 
 # If the "snapshot" database is running, kill it

@@ -34,6 +34,7 @@
 use strict;
 use v5.10.1;  # using the "for" version of switch
 use IPC::Open3;
+use lib qw( /usr/local/bin ); # So it can find UALBackups...
 use UALBackups;
 
 my $DEBUG = 0;  # disabled by default
