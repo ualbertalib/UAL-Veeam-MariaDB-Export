@@ -1,0 +1,36 @@
+# This file belongs to the "UAL-Veeam-MariaDB-Export" package.
+# The package should place this file at /etc/snap.cnf
+
+# Author:	Neil MacGregor
+# Date:		Oct 19, 2022
+# Purpose:	This is a clone from /etc/my.cnf.
+#		It's an alternate config file for an alternate MySQL daemon, run as part of the database. 
+# Reference: 	https://github.com/ualbertalib/UAL-Veeam-MariaDB-Export
+
+[mysqld]
+datadir=/mnt/snapshot
+socket=/mnt/snapshot/snapshot.sock
+port=3307
+report_host=snapshot
+user=mysql
+ft_min_word_len=3
+max_connections=500
+open_files_limit=3072 
+# Disabling symbolic-links is recommended to prevent assorted security risks
+symbolic-links=0
+
+# Disable binary logging -- we dont' need to write to this DB, just dump it!
+#log-bin=mysql-bin
+
+server-id=2
+
+default_storage_engine=InnoDB
+max_allowed_packet=16M
+
+innodb_log_buffer_size=32M
+innodb_log_file_size=768M
+innodb_buffer_pool_size=3G
+
+[mysqld_safe]
+log-error=/var/log/mariadb/snapshot.log
+pid-file=/var/run/mariadb/snapshot.pid
