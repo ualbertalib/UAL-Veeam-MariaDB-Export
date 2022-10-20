@@ -156,7 +156,7 @@ my $LVcommand = "lvcreate --snapshot --size=" . $cfg->{"snapshotSize"} . " --nam
 `$LVcommand`;
 if ($? != 0) {   # then the snapshot failed
 	&log  ("Failed to create the snapshot -- check for sufficient (250Mb) space in the '" . $cfg->{"mysqlVolumeGroup"} . "' volume group?");
-	`systemctl start mariadb.service`; # the slave process will autorestart
+	startDatabase();
 	&gone ("Backup failed, but I tried to restart the primary mariadb.service"); # does not return
 }
 $DEBUG && print "Snapshot created: $snapLV...\n";
