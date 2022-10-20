@@ -1,9 +1,9 @@
 #!/usr/bin/perl -w
 # Author:	Neil MacGregor
-# Versions:	-- fix mee!!!! -------------------------------
+# Versions:	https://github.com/ualbertalib/UAL-Veeam-MariaDB-Export
 # Provenance: 	From my earlier work on CommVault: ssh://root@code.library.ualberta.ca/var/lib/git/MariaDB_Simpana_Backup, ca. 2013
 # Date:		Oct 18, 2022
-# Purpose:	pre-scan.pl is designed to be called from CommVault BEFORE it scans the filesystem.
+# Purpose:	pre-scan.pl is designed to be called from Veeam BEFORE it snapshots & scans the filesystem.
 # 		It is designed to run ONLY on the replica - if you try to run it on the Master
 # 		it will fail (when it tries to stop slave!). 
 # 		Overview of the process:
@@ -29,7 +29,7 @@
 # - need a configuration file where we can make adjustments to key variables
 # - release as an RPM, in its own repo
 # - using backticks `` is a bad idea if you need to read the return code
-# - generalized testing
+# - automated testing
 
 use strict;
 use v5.10.1;  # using the "for" version of switch
