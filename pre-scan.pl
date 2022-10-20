@@ -284,9 +284,8 @@ if ( -e $lockFile ) {
 } else {
 	&gone ("Tried to release lock on $lockFile, but it didn't exist!");
 }
-#
-# (Commvault performs the backup)
-#
-# NOTE Post job will unmount the snapshot, and delete the snapshot, in just a few minutes
+
+# (External backup software now performs the backup)
+# NOTE Post job will unmount the snapshot, delete the snapshot, and restart the replica database, in just a few minutes
 &log ("pre-scan.pl finishes - External backup starts now");
 # intended EOF
