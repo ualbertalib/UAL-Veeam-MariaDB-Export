@@ -97,14 +97,14 @@ sub startDatabase {
 	# Start the database service
 	`systemctl start mariadb.service`;
 	&gone("Unable to restart the mariadb service, after making the snapshot") unless ($? == 0);  # does not return
-	&log ("Database re-started");
+	&log ("Replica database re-started");
 
 }
 
 sub stopDatabase {
 	`systemctl stop mariadb.service `;
 	&gone ("Failed shutting down the primary mysqld on this system") unless ($? == 0);  # checking return code ; does not return
-	&log ("Database shut down");
+	&log ("Replica database shut down");
 }
 
 sub log {

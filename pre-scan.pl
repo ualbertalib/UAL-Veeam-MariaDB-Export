@@ -199,6 +199,9 @@ while ( ! -e $socket ) {  # this is an awful hack - needs a time limit
 }
 &log ("mysqld running on port 3307 - starting dump!");
 
+# 5b. Restart the "main" database on 3306, so it's not down for 30 minutes while dumping Prod databases!
+startDatabase();
+
 # 6. Use mysqldump to dump from this database to text files
 my ($pid,$child_exit_status); 
 foreach my $db (@dbName) {
@@ -277,6 +280,9 @@ sleep $killTimeout;
 # 8. Unmount and remove the snapshot
 unmountSnapshot();
 removeSnapshot($cfg);
+
+# 8b. Stop the database again, so the external backup sees /var/lib/mysql/ is quiet
+stopDatabase();
 
 # 9. Release the lock; Exit 
 if ( -e $lockFile ) {
