@@ -189,13 +189,13 @@ if ($forkStatus == 0 ) {
 	exit;
 }
 my $count = 0;
-sleep 5;
 my $socket = "/mnt/snapshot/snapshot.sock";  # ought to read this value from /etc/snap.cnf
-while ( ! -e $socket ) {  # this is an awful hack - needs a time limit
+&log ("Limit to wait for socket to appear, in seconds: " .  $cfg->{"startupTimeout"});
+while ( ! -e $socket ) {
 	sleep 5;
-	$count ++; 
-	&log ("Waiting for $socket to appear");
-	die "Unable to start the alternate mysql on port 3307 after 1 minute" unless $count < 11; 
+	$count = $count + 5; 
+	&log ("Waiting for $socket to appear, expired seconds: $count");
+	die "Unable to start the alternate mysql on port 3307 - socket did not appear with the time limit" unless $count < $cfg->{"startupTimeout"}; 
 }
 &log ("mysqld running on port 3307 - starting dump!");
 
