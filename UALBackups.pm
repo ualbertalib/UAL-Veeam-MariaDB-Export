@@ -37,6 +37,7 @@ sub readConfigFile {
 	defined $cfg->{"minimumTarballSize"} or &gone("Config file $configPath didn't specify 'minimumTarballSize'");
 	defined $cfg->{"snapshotSize"} or &gone("Config file $configPath didn't specify 'snapshotSize'");
 	defined $cfg->{"killTimeout"} or &gone("Config file $configPath didn't specify 'killTimeout'");
+	defined $cfg->{"startupTimeout"} or &gone("Config file $configPath didn't specify 'startupTimeout'");
 	defined $cfg->{"daysToRetainBackups"} or &gone("Config file $configPath didn't specify 'daysToRetainBackups'");
 	&log ("Read $configPath");
 	return $cfg;
