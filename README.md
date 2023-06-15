@@ -31,9 +31,10 @@ warning: /etc/UAL-Veeam-MariaDB-Export.conf saved as /etc/UAL-Veeam-MariaDB-Expo
 * If you'd like to try running it from cron, consider: 
 
 ```
-[root@mariadb-db-tst-secondary-1 UAL-Veeam-MariaDB-Export]# ln -s pre-scan.pl /usr/local/bin
-[root@mariadb-db-tst-secondary-1 UAL-Veeam-MariaDB-Export]# ln -s post-backup.pl /usr/local/bin
-[root@mariadb-db-tst-secondary-1 UAL-Veeam-MariaDB-Export]# ln -s UALBackups.pm  /usr/local/bin
+cd /usr/local/bin
+ln -s /root/UAL-Veeam-MariaDB-Export/pre-scan.pl .
+ln -s /root/UAL-Veeam-MariaDB-Export/post-backup.pl .
+ln -s /root/UAL-Veeam-MariaDB-Export/UALBackups.pm .
 ```
 
-... but obviously, you'd have to remember to undo that, before attempting to install it from RPM
+... but obviously, you'd have to remember to undo that, before attempting to install it from RPM again!!
