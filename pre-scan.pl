@@ -95,6 +95,8 @@ my $timeStamp = $year .  sprintf("%02d%02d%02d%02d%02d",  $mon, $mday, $hour, $m
 my $tarName="$backupDir/mysql_backup_$timeStamp.tar"; 
 `touch $backupDir/mysql_backup_$timeStamp.tar`;
 
+# Pesky humans sometimes unpack file(s) from the tarball into the temp dir, and forget about them.  This causes the next backup to fail. This function will clean it up.  Issue #5
+cleanUp($cfg);
 
 # 0.2 Don't even consider starting unless there is broadly sufficient disk space to accomplish the backup
 # ... because despite my best attempts below, neither tar nor mysqldump report if there is insufficient space!
@@ -104,10 +106,6 @@ my $tarName="$backupDir/mysql_backup_$timeStamp.tar";
 # The filesystem must have room for 12 copies at all times...
 my $diskRequired =  &sizeof ($backupDir) / 8;   # Adjusted this ratio, TicketID=9680, Mar 12, 2014, Neil
 my $remaining = &diskRemaining("/var/backups"); 
-if ($remaining < $diskRequired) {
-	`/bin/rm -rf $backupDir/tmp/*`; # silently cleanup the tmpdir, which can result if a previous run of this script failed
-	$remaining = &diskRemaining("/var/backups");  # recalculate -- did that help?
-}
 &gone("Insufficient disk space to begin, need $diskRequired Kb, have only $remaining Kb available in /var/backups")  unless ($remaining > $diskRequired); 
 &log ("Broadly, sufficient disk space found");
 
@@ -249,7 +247,8 @@ system ("tar cf $tarName tmp/*.sql.gz") == 0 || &gone ("System call to tar faile
 use File::stat; 
 my $statBlob = stat($tarName);
 &gone ("Tarball is too small, just " . $statBlob->size . ", exiting early")  unless ($statBlob->size > $cfg->{"minimumTarballSize"} );
-`/bin/rm -rf /var/backups/mysql/tmp/*`;  # clean up after yourself
+# We've potentially left the temp directory in a mess, we'll use this function to clean it up
+cleanUp($cfg);
 &log ("Dump completed...");
 
 # 7. Kill that mysql process:
