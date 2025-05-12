@@ -122,7 +122,7 @@ my $remaining = &diskRemaining("/var/backups");
 
 # retrieve a list of the database tables that exist
 #my $dsn = "DBI:mysql:mysql;mysql_read_default_file=$ENV{HOME}/.my.cnf"; 
-my $dsn = "DBI:MariaDB;mysql_read_default_file=/root/.my.cnf"; 
+my $dsn = "DBI:MariaDB:mysql;mariadb_read_default_file=/root/.my.cnf"; 
 my $dbh = DBI->connect($dsn, undef, undef, {RaiseError => 1}) || &gone ("Cannot connect to local database: $!");
 &log ("Successfully connected to the database");
 
