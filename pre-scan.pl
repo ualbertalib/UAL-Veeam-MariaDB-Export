@@ -35,6 +35,7 @@ use strict;
 use v5.10.1;  # using the "for" version of switch
 use IPC::Open3;
 use lib qw( /usr/local/bin ); # So it can find UALBackups...
+use DBI;
 use UALBackups;
 
 my $DEBUG = 0;  # disabled by default
@@ -120,9 +121,8 @@ my $remaining = &diskRemaining("/var/backups");
 &log ("Good: the snapshot doesn't exist");
 
 # retrieve a list of the database tables that exist
-use DBI;   # first, gotta connect to the DB
 #my $dsn = "DBI:mysql:mysql;mysql_read_default_file=$ENV{HOME}/.my.cnf"; 
-my $dsn = "DBI:mysql:mysql;mysql_read_default_file=/root/.my.cnf"; 
+my $dsn = "DBI:MariaDB;mysql_read_default_file=/root/.my.cnf"; 
 my $dbh = DBI->connect($dsn, undef, undef, {RaiseError => 1}) || &gone ("Cannot connect to local database: $!");
 &log ("Successfully connected to the database");
 
